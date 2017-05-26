@@ -6,7 +6,7 @@ if SERVER then
 
 
 AddCSLuaFile()
-local von = include( "../lf_shared/von_1_3_4.lua" )
+local von = include( "lf_shared/von_1_3_4.lua" )
 
 util.AddNetworkString( "lf_weapon_properties_editor" )
 
