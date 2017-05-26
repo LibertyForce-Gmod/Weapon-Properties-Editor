@@ -1,0 +1,13 @@
+{
+	"title"		:	"Weapon Properties Editor",
+	"type"		:	"tool",
+	"tags"		:	[ "fun", "roleplay" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*",
+		"*.git*",
+		"*.md"
+	]
+}
