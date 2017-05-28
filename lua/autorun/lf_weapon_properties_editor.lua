@@ -131,7 +131,7 @@ local function SaveReplacement( weapon, value, ply )
 		netmsg( 0 )
 		net.WriteUInt( 3, 2 )
 		net.Send( ply )
-		return false
+		return
 	end
 	Weapons_Replaced[weapon] = value
 	
@@ -146,7 +146,7 @@ local function DeleteReplacement( weapon, ply )
 	Weapons_Replaced[weapon] = nil
 	
 	file.Write( dir.."/replacements.txt", von.serialize( Weapons_Replaced ) )
-	GetReplacements( ply )
+	if ply then GetReplacements( ply ) end
 	
 end
 
@@ -220,6 +220,7 @@ hook.Add( "PlayerCanPickupWeapon", "lf_weapon_properties_editor_pickup", functio
 	if Weapons_Replaced[wep_class] then
 		if not Weapons_TempActive[wep_ent] then -- Prevents running more then once per entity
 			Weapons_TempActive[wep_ent] = true
+			timer.Simple( 2, function() print( "Timer run" ) Weapons_TempActive[wep_ent] = nil end )
 			wep_ent:Remove()
 			
 			if Weapons_Replaced[Weapons_Replaced[wep_class]] then return false end -- Prevents loops
@@ -228,7 +229,11 @@ hook.Add( "PlayerCanPickupWeapon", "lf_weapon_properties_editor_pickup", functio
 					
 			if Weapons_Replaced[wep_class] ~= "" then
 				weapon = ply:Give( Weapons_Replaced[wep_class], true )
-				if IsValid( weapon ) then
+				if IsValid( weapon ) and not weapon:IsWeapon() then
+					weapon:Remove()
+					DeleteReplacement( wep_class )
+					return false
+				elseif IsValid( weapon ) then
 					weapon:SetClip1( weapon:GetMaxClip1() )
 					weapon:SetClip2( 0 )
 					return false
@@ -244,8 +249,6 @@ hook.Add( "PlayerCanPickupWeapon", "lf_weapon_properties_editor_pickup", functio
 				local ammo = game.GetAmmoName( weapon:GetPrimaryAmmoType() )
 				if ammo then ply:GiveAmmo( clip, ammo ) end
 			end
-
-			timer.Simple( 1, function() Weapons_TempActive[wep_ent] = nil end )
 		end
 		return false
 	end
