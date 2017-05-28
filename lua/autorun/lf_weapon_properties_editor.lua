@@ -16,8 +16,8 @@ local Weapons_TempActive = {}
 local dir = "lf_weapon_properties_editor"
 local dir_presets = dir.."/presets_v1_0"
 
-if !file.Exists( dir, "DATA" ) then file.CreateDir( dir ) end
-if !file.Exists( dir_presets, "DATA" ) then file.CreateDir( dir_presets ) end
+if not file.Exists( dir, "DATA" ) then file.CreateDir( dir ) end
+if not file.Exists( dir_presets, "DATA" ) then file.CreateDir( dir_presets ) end
 
 
 local function netmsg( id )
@@ -131,7 +131,7 @@ local function SaveReplacement( weapon, value, ply )
 		netmsg( 0 )
 		net.WriteUInt( 3, 2 )
 		net.Send( ply )
-		return false
+		return
 	end
 	Weapons_Replaced[weapon] = value
 	
@@ -146,7 +146,7 @@ local function DeleteReplacement( weapon, ply )
 	Weapons_Replaced[weapon] = nil
 	
 	file.Write( dir.."/replacements.txt", von.serialize( Weapons_Replaced ) )
-	GetReplacements( ply )
+	if ply then GetReplacements( ply ) end
 	
 end
 
@@ -220,32 +220,29 @@ hook.Add( "PlayerCanPickupWeapon", "lf_weapon_properties_editor_pickup", functio
 	if Weapons_Replaced[wep_class] then
 		if not Weapons_TempActive[wep_ent] then -- Prevents running more then once per entity
 			Weapons_TempActive[wep_ent] = true
+			timer.Simple( 2, function() Weapons_TempActive[wep_ent] = nil end )
 			wep_ent:Remove()
 			
 			if Weapons_Replaced[Weapons_Replaced[wep_class]] then return false end -- Prevents loops
 			
-			local weapon
+			local weapon = ply:GetWeapon( Weapons_Replaced[wep_class] )
 					
-			if Weapons_Replaced[wep_class] ~= "" then
+			if Weapons_Replaced[wep_class] ~= "" and not IsValid( weapon ) then
 				weapon = ply:Give( Weapons_Replaced[wep_class], true )
-				if IsValid( weapon ) then
+				if IsValid( weapon ) and not weapon:IsWeapon() then
+					weapon:Remove()
+					DeleteReplacement( wep_class )
+				elseif IsValid( weapon ) then
 					weapon:SetClip1( weapon:GetMaxClip1() )
 					weapon:SetClip2( 0 )
-					return false
-				else
-					weapon = ply:GetWeapon( Weapons_Replaced[wep_class] )
 				end
-			end
-			
-			if not IsValid( weapon ) then weapon = wep_ent end -- If the above fails, get the ammo from the picked up entity
-			local clip = weapon:GetMaxClip1()
-			
-			if clip > 0 then
+			else
+				if not IsValid( weapon ) then weapon = wep_ent end
+				local clip = weapon:GetMaxClip1()
+				if clip <= 0 then clip = 1 end
 				local ammo = game.GetAmmoName( weapon:GetPrimaryAmmoType() )
 				if ammo then ply:GiveAmmo( clip, ammo ) end
 			end
-
-			timer.Simple( 1, function() Weapons_TempActive[wep_ent] = nil end )
 		end
 		return false
 	end
@@ -360,6 +357,7 @@ local function Notify( msg )
 	elseif msg == 1 then notification.AddLegacy( "Preset saved successfully.", NOTIFY_GENERIC, 5 )
 	elseif msg == 2 then notification.AddLegacy( "Weapon is not modified. Apply settings first.", NOTIFY_ERROR, 5 )
 	elseif msg == 3 then notification.AddLegacy( "Not possible. Remove conflicting replacements first.", NOTIFY_ERROR, 5 )
+	elseif msg == 4 then notification.AddLegacy( "Weapon class invalid. Please enter the class of a registered SWEP.", NOTIFY_ERROR, 5 )
 	end
 end
 
@@ -415,7 +413,7 @@ function Menu.Editor:Init( weapon_class )
 	
 	local tbl = weapons.GetStored( weapon_class )
 	if not istable( tbl ) then
-		notification.AddLegacy( "Weapon class invalid. Please enter the class of a registered SWEP.", NOTIFY_ERROR, 5 )
+		Notify( 4 )
 		return
 	end
 	local weapon = {}
@@ -682,8 +680,6 @@ function Menu.PresetList:Init()
 	end
 	
 	netmsg( 3 )
-	net.SendToServer()
-	net.WriteString("LALA")
 	net.SendToServer()
 	
 	local b = pnl:Add( "DButton" )
