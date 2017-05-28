@@ -16,8 +16,8 @@ local Weapons_TempActive = {}
 local dir = "lf_weapon_properties_editor"
 local dir_presets = dir.."/presets_v1_0"
 
-if !file.Exists( dir, "DATA" ) then file.CreateDir( dir ) end
-if !file.Exists( dir_presets, "DATA" ) then file.CreateDir( dir_presets ) end
+if not file.Exists( dir, "DATA" ) then file.CreateDir( dir ) end
+if not file.Exists( dir_presets, "DATA" ) then file.CreateDir( dir_presets ) end
 
 
 local function netmsg( id )
@@ -360,6 +360,7 @@ local function Notify( msg )
 	elseif msg == 1 then notification.AddLegacy( "Preset saved successfully.", NOTIFY_GENERIC, 5 )
 	elseif msg == 2 then notification.AddLegacy( "Weapon is not modified. Apply settings first.", NOTIFY_ERROR, 5 )
 	elseif msg == 3 then notification.AddLegacy( "Not possible. Remove conflicting replacements first.", NOTIFY_ERROR, 5 )
+	elseif msg == 4 then notification.AddLegacy( "Weapon class invalid. Please enter the class of a registered SWEP.", NOTIFY_ERROR, 5 )
 	end
 end
 
@@ -415,7 +416,7 @@ function Menu.Editor:Init( weapon_class )
 	
 	local tbl = weapons.GetStored( weapon_class )
 	if not istable( tbl ) then
-		notification.AddLegacy( "Weapon class invalid. Please enter the class of a registered SWEP.", NOTIFY_ERROR, 5 )
+		Notify( 4 )
 		return
 	end
 	local weapon = {}
@@ -682,8 +683,6 @@ function Menu.PresetList:Init()
 	end
 	
 	netmsg( 3 )
-	net.SendToServer()
-	net.WriteString("LALA")
 	net.SendToServer()
 	
 	local b = pnl:Add( "DButton" )
