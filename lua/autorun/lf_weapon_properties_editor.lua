@@ -25,6 +25,12 @@ local function netmsg( id )
 	net.WriteUInt( id, 4 )
 end
 
+local function Notify( ply, id )
+	netmsg( 0 )
+	net.WriteUInt( id, 3 )
+	net.Send( ply )
+end
+
 local function ApplyChanges( weapon )
 	
 	local tbl = weapons.GetStored( weapon.Class )
@@ -92,14 +98,12 @@ end
 
 local function SavePreset( weapon_class, ply )
 	
-	netmsg( 0 )
 	if istable( Weapons_Edited[weapon_class] ) then
 		file.Write( dir_presets.."/"..tostring( weapon_class )..".txt", von.serialize( Weapons_Edited[weapon_class] ) )
-		net.WriteUInt( 1, 2 )
+		Notify( ply, 1 )
 	else
-		net.WriteUInt( 2, 2 )
+		Notify( ply, 2 )
 	end
-	net.Send( ply )
 	
 end
 
@@ -128,9 +132,7 @@ local function SaveReplacement( weapon, value, ply )
 	if not istable( Weapons_Replaced ) then return end
 	if weapon == value or Weapons_Replaced[value] then -- Prevents loops
 		Weapons_Replaced[weapon] = nil
-		netmsg( 0 )
-		net.WriteUInt( 3, 2 )
-		net.Send( ply )
+		Notify( ply, 3 )
 		return
 	end
 	Weapons_Replaced[weapon] = value
@@ -153,7 +155,7 @@ end
 local function LoadFiles()
 	
 	if file.Exists( dir.."/replacements.txt", "DATA" ) then
-		Weapons_Replaced = von.deserialize( file.Read( dir.."/replacements.txt" ), "DATA" ) or {}
+		Weapons_Replaced = von.deserialize( file.Read( dir.."/replacements.txt", "DATA" ) ) or {}
 	end
 	
 	local files = file.Find( dir_presets.."/*.txt", "DATA" )
@@ -184,9 +186,7 @@ net.Receive("lf_weapon_properties_editor", function( len, ply )
 		--
 	elseif func == 1 then -- Apply weapon changes to server and clients
 		ApplyChanges( net.ReadTable() )
-		netmsg( 0 )
-		net.WriteUInt( 0, 2 )
-		net.Send( ply )
+		Notify( ply, 0 )
 	elseif func == 2 then -- Saving Presets
 		SavePreset( net.ReadString(), ply )
 	elseif func == 3 then -- Getting Presets List
@@ -367,7 +367,7 @@ net.Receive("lf_weapon_properties_editor", function()
 	local func = net.ReadUInt( 4 )
 	
 	if func == 0 then -- Player Notifications
-		Notify( net.ReadUInt( 2 ) )
+		Notify( net.ReadUInt( 3 ) )
 	elseif func == 1 then -- Apply weapon changes to server and clients
 		ApplyChanges( net.ReadTable() )
 	elseif func == 2 then -- Saving Presets
