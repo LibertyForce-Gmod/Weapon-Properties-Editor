@@ -804,7 +804,7 @@ function Menu.Replacements:Init()
 	
 	Menu.Replacements.RightEntry = right:Add( "DTextEntry" )
 	Menu.Replacements.RightEntry:Dock( TOP )
-	Menu.Replacements.LeftEntry:SetHeight( 20 )
+	Menu.Replacements.RightEntry:SetHeight( 20 )
 	
 	local b = pnl:Add( "DButton" )
 	b:Dock( TOP )
