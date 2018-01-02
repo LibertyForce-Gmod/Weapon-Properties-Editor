@@ -43,6 +43,8 @@ local function ApplyChanges( weapon )
 		if tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
 		if tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
 		if tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
+		if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
+		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
 	end
 	if istable( tbl.Secondary ) and istable( weapon.Secondary ) then
 		if tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
@@ -256,7 +258,7 @@ end
 if CLIENT then
 
 
-local Version = "1.0"
+local Version = "1.1"
 local Menu = { Main = {}, Editor = {}, PresetList = {}, Replacements = {} }
 
 local default_ammo_types = {
@@ -335,6 +337,8 @@ local function ApplyChanges( weapon )
 		if tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
 		if tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
 		if tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
+		if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
+		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
 	end
 	if istable( tbl.Secondary ) and istable( weapon.Secondary ) then
 		if tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
@@ -424,6 +428,8 @@ function Menu.Editor:Init( weapon_class )
 		if tbl.Primary.Damage then weapon.Primary.Damage = tbl.Primary.Damage end
 		if tbl.Primary.ClipSize then weapon.Primary.ClipSize = tbl.Primary.ClipSize end
 		if tbl.Primary.DefaultClip then weapon.Primary.DefaultClip = tbl.Primary.DefaultClip end
+		if tbl.Primary.RPM then weapon.Primary.RPM = tbl.Primary.RPM
+		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then weapon.Primary.RPM = math.Round( ( 60 / tbl.FireDelay ) ) end
 	end
 	if istable( tbl.Secondary ) then
 		if tbl.Secondary.Ammo then weapon.Secondary.Ammo = tbl.Secondary.Ammo end
@@ -532,8 +538,9 @@ function Menu.Editor:Init( weapon_class )
 	end
 	
 	local line, rPriDamage = AddLineInt( list, "Damage:", weapon.Primary.Damage, 0, 1000 )
-	local line, rPriClipSize = AddLineInt( list, "Clip Size:", weapon.Primary.ClipSize, 0, 500 )
-	local line, rPriDefaultClip = AddLineInt( list, "Default number of rounds:", weapon.Primary.DefaultClip, 0, 500 )
+	local line, rPriClipSize = AddLineInt( list, "Magazine Size:", weapon.Primary.ClipSize, 0, 500 )
+	local line, rPriDefaultClip = AddLineInt( list, "Rounds per pickup:", weapon.Primary.DefaultClip, 0, 500 )
+	local line, rPriRPM = AddLineInt( list, "Firerate (RPM):", weapon.Primary.RPM, 0, 5000 )
 	
 	
 	local cat = prop:Add( "Secondary Ammo" )
@@ -557,8 +564,8 @@ function Menu.Editor:Init( weapon_class )
 	end
 	
 	local line, rSecDamage = AddLineInt( list, "Damage:", weapon.Secondary.Damage, 0, 1000 )
-	local line, rSecClipSize = AddLineInt( list, "Clip Size:", weapon.Secondary.ClipSize, 0, 500 )
-	local line, rSecDefaultClip = AddLineInt( list, "Default number of rounds:", weapon.Secondary.DefaultClip, 0, 500 )
+	local line, rSecClipSize = AddLineInt( list, "Magazine Size:", weapon.Secondary.ClipSize, 0, 500 )
+	local line, rSecDefaultClip = AddLineInt( list, "Rounds per pickup:", weapon.Secondary.DefaultClip, 0, 500 )
 	
 	
 	local cat = prop:Add( "Weapon Slots" )
@@ -619,6 +626,7 @@ function Menu.Editor:Init( weapon_class )
 		if rPriDamage then weapon.Primary.Damage = math.Round( rPriDamage:GetValue() ) end
 		if rPriClipSize then weapon.Primary.ClipSize = math.Round( rPriClipSize:GetValue() ) end
 		if rPriDefaultClip then weapon.Primary.DefaultClip = math.Round( rPriDefaultClip:GetValue() ) end
+		if rPriRPM then weapon.Primary.RPM = math.Round( rPriRPM:GetValue() ) end
 		if rSecAmmo then weapon.Secondary.Ammo = tostring( rSecAmmo:GetValue() ) end
 		if rSecDamage then weapon.Secondary.Damage = math.Round( rSecDamage:GetValue() ) end
 		if rSecClipSize then weapon.Secondary.ClipSize = math.Round( rSecClipSize:GetValue() ) end
