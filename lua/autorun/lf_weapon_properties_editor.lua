@@ -25,6 +25,12 @@ local function netmsg( id )
 	net.WriteUInt( id, 4 )
 end
 
+local function Notify( ply, id )
+	netmsg( 0 )
+	net.WriteUInt( id, 3 )
+	net.Send( ply )
+end
+
 local function ApplyChanges( weapon )
 	
 	local tbl = weapons.GetStored( weapon.Class )
@@ -37,6 +43,8 @@ local function ApplyChanges( weapon )
 		if tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
 		if tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
 		if tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
+		if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
+		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
 	end
 	if istable( tbl.Secondary ) and istable( weapon.Secondary ) then
 		if tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
@@ -92,14 +100,12 @@ end
 
 local function SavePreset( weapon_class, ply )
 	
-	netmsg( 0 )
 	if istable( Weapons_Edited[weapon_class] ) then
 		file.Write( dir_presets.."/"..tostring( weapon_class )..".txt", von.serialize( Weapons_Edited[weapon_class] ) )
-		net.WriteUInt( 1, 2 )
+		Notify( ply, 1 )
 	else
-		net.WriteUInt( 2, 2 )
+		Notify( ply, 2 )
 	end
-	net.Send( ply )
 	
 end
 
@@ -128,9 +134,7 @@ local function SaveReplacement( weapon, value, ply )
 	if not istable( Weapons_Replaced ) then return end
 	if weapon == value or Weapons_Replaced[value] then -- Prevents loops
 		Weapons_Replaced[weapon] = nil
-		netmsg( 0 )
-		net.WriteUInt( 3, 2 )
-		net.Send( ply )
+		Notify( ply, 3 )
 		return
 	end
 	Weapons_Replaced[weapon] = value
@@ -153,7 +157,7 @@ end
 local function LoadFiles()
 	
 	if file.Exists( dir.."/replacements.txt", "DATA" ) then
-		Weapons_Replaced = von.deserialize( file.Read( dir.."/replacements.txt" ), "DATA" ) or {}
+		Weapons_Replaced = von.deserialize( file.Read( dir.."/replacements.txt", "DATA" ) ) or {}
 	end
 	
 	local files = file.Find( dir_presets.."/*.txt", "DATA" )
@@ -184,9 +188,7 @@ net.Receive("lf_weapon_properties_editor", function( len, ply )
 		--
 	elseif func == 1 then -- Apply weapon changes to server and clients
 		ApplyChanges( net.ReadTable() )
-		netmsg( 0 )
-		net.WriteUInt( 0, 2 )
-		net.Send( ply )
+		Notify( ply, 0 )
 	elseif func == 2 then -- Saving Presets
 		SavePreset( net.ReadString(), ply )
 	elseif func == 3 then -- Getting Presets List
@@ -256,7 +258,7 @@ end
 if CLIENT then
 
 
-local Version = "1.0"
+local Version = "1.1"
 local Menu = { Main = {}, Editor = {}, PresetList = {}, Replacements = {} }
 
 local default_ammo_types = {
@@ -335,6 +337,8 @@ local function ApplyChanges( weapon )
 		if tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
 		if tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
 		if tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
+		if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
+		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
 	end
 	if istable( tbl.Secondary ) and istable( weapon.Secondary ) then
 		if tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
@@ -367,7 +371,7 @@ net.Receive("lf_weapon_properties_editor", function()
 	local func = net.ReadUInt( 4 )
 	
 	if func == 0 then -- Player Notifications
-		Notify( net.ReadUInt( 2 ) )
+		Notify( net.ReadUInt( 3 ) )
 	elseif func == 1 then -- Apply weapon changes to server and clients
 		ApplyChanges( net.ReadTable() )
 	elseif func == 2 then -- Saving Presets
@@ -424,6 +428,8 @@ function Menu.Editor:Init( weapon_class )
 		if tbl.Primary.Damage then weapon.Primary.Damage = tbl.Primary.Damage end
 		if tbl.Primary.ClipSize then weapon.Primary.ClipSize = tbl.Primary.ClipSize end
 		if tbl.Primary.DefaultClip then weapon.Primary.DefaultClip = tbl.Primary.DefaultClip end
+		if tbl.Primary.RPM then weapon.Primary.RPM = tbl.Primary.RPM
+		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then weapon.Primary.RPM = math.Round( ( 60 / tbl.FireDelay ) ) end
 	end
 	if istable( tbl.Secondary ) then
 		if tbl.Secondary.Ammo then weapon.Secondary.Ammo = tbl.Secondary.Ammo end
@@ -494,7 +500,7 @@ function Menu.Editor:Init( weapon_class )
 		line:DockPadding( 5, 2, 5, 2 )
 		line:SetDrawBackground( false )
 		local id
-		if val then
+		if val and val >= 0 then
 			id = line:Add( "DNumSlider" )
 			id:Dock( FILL )
 			id:SetDark( true )
@@ -532,8 +538,9 @@ function Menu.Editor:Init( weapon_class )
 	end
 	
 	local line, rPriDamage = AddLineInt( list, "Damage:", weapon.Primary.Damage, 0, 1000 )
-	local line, rPriClipSize = AddLineInt( list, "Clip Size:", weapon.Primary.ClipSize, 0, 500 )
-	local line, rPriDefaultClip = AddLineInt( list, "Default number of rounds:", weapon.Primary.DefaultClip, 0, 500 )
+	local line, rPriClipSize = AddLineInt( list, "Magazine Size:", weapon.Primary.ClipSize, 0, 500 )
+	local line, rPriDefaultClip = AddLineInt( list, "Rounds per pickup:", weapon.Primary.DefaultClip, 0, 500 )
+	local line, rPriRPM = AddLineInt( list, "Firerate (RPM):", weapon.Primary.RPM, 0, 5000 )
 	
 	
 	local cat = prop:Add( "Secondary Ammo" )
@@ -557,8 +564,8 @@ function Menu.Editor:Init( weapon_class )
 	end
 	
 	local line, rSecDamage = AddLineInt( list, "Damage:", weapon.Secondary.Damage, 0, 1000 )
-	local line, rSecClipSize = AddLineInt( list, "Clip Size:", weapon.Secondary.ClipSize, 0, 500 )
-	local line, rSecDefaultClip = AddLineInt( list, "Default number of rounds:", weapon.Secondary.DefaultClip, 0, 500 )
+	local line, rSecClipSize = AddLineInt( list, "Magazine Size:", weapon.Secondary.ClipSize, 0, 500 )
+	local line, rSecDefaultClip = AddLineInt( list, "Rounds per pickup:", weapon.Secondary.DefaultClip, 0, 500 )
 	
 	
 	local cat = prop:Add( "Weapon Slots" )
@@ -619,6 +626,7 @@ function Menu.Editor:Init( weapon_class )
 		if rPriDamage then weapon.Primary.Damage = math.Round( rPriDamage:GetValue() ) end
 		if rPriClipSize then weapon.Primary.ClipSize = math.Round( rPriClipSize:GetValue() ) end
 		if rPriDefaultClip then weapon.Primary.DefaultClip = math.Round( rPriDefaultClip:GetValue() ) end
+		if rPriRPM then weapon.Primary.RPM = math.Round( rPriRPM:GetValue() ) end
 		if rSecAmmo then weapon.Secondary.Ammo = tostring( rSecAmmo:GetValue() ) end
 		if rSecDamage then weapon.Secondary.Damage = math.Round( rSecDamage:GetValue() ) end
 		if rSecClipSize then weapon.Secondary.ClipSize = math.Round( rSecClipSize:GetValue() ) end
@@ -804,7 +812,7 @@ function Menu.Replacements:Init()
 	
 	Menu.Replacements.RightEntry = right:Add( "DTextEntry" )
 	Menu.Replacements.RightEntry:Dock( TOP )
-	Menu.Replacements.LeftEntry:SetHeight( 20 )
+	Menu.Replacements.RightEntry:SetHeight( 20 )
 	
 	local b = pnl:Add( "DButton" )
 	b:Dock( TOP )
