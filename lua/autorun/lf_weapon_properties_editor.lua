@@ -500,7 +500,7 @@ function Menu.Editor:Init( weapon_class )
 		line:DockPadding( 5, 2, 5, 2 )
 		line:SetDrawBackground( false )
 		local id
-		if val then
+		if val and val >= 0 then
 			id = line:Add( "DNumSlider" )
 			id:Dock( FILL )
 			id:SetDark( true )
