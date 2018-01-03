@@ -39,25 +39,27 @@ local function ApplyChanges( weapon )
 	Weapons_Edited[weapon.Class] = weapon
 	
 	if istable( tbl.Primary ) and istable( weapon.Primary ) then
-		if tbl.Primary.Ammo then tbl.Primary.Ammo = weapon.Primary.Ammo end
-		if tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
-		if tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
-		if tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
-		if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
-		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
+		if weapon.Primary.Ammo and tbl.Primary.Ammo then tbl.Primary.Ammo = weapon.Primary.Ammo end
+		if weapon.Primary.Damage and tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
+		if weapon.Primary.ClipSize and tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
+		if weapon.Primary.DefaultClip and tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
+		if weapon.Primary.RPM then
+			if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
+			elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
+		end
 	end
 	if istable( tbl.Secondary ) and istable( weapon.Secondary ) then
-		if tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
-		if tbl.Secondary.Damage then tbl.Secondary.Damage = weapon.Secondary.Damage end
-		if tbl.Secondary.ClipSize then tbl.Secondary.ClipSize = weapon.Secondary.ClipSize end
-		if tbl.Secondary.DefaultClip then tbl.Secondary.DefaultClip = weapon.Secondary.DefaultClip end
+		if weapon.Secondary.Ammo and tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
+		if weapon.Secondary.Damage and tbl.Secondary.Damage then tbl.Secondary.Damage = weapon.Secondary.Damage end
+		if weapon.Secondary.ClipSize and tbl.Secondary.ClipSize then tbl.Secondary.ClipSize = weapon.Secondary.ClipSize end
+		if weapon.Secondary.DefaultClip and tbl.Secondary.DefaultClip then tbl.Secondary.DefaultClip = weapon.Secondary.DefaultClip end
 	end
-	if tbl.Slot then tbl.Slot = weapon.Slot end
-	if tbl.SlotPos then tbl.SlotPos = weapon.SlotPos end
+	if weapon.Slot and tbl.Slot then tbl.Slot = weapon.Slot end
+	if weapon.SlotPos and tbl.SlotPos then tbl.SlotPos = weapon.SlotPos end
 	if istable( tbl.FireModes ) and istable( weapon.FireModes ) then
-		if tbl.FireModes[1] then tbl.FireModes[1] = weapon.FireModes[1] end
-		if tbl.FireModes[2] then tbl.FireModes[2] = weapon.FireModes[2] end
-		if tbl.FireModes[3] then tbl.FireModes[3] = weapon.FireModes[3] end
+		if weapon.FireModes[1] and tbl.FireModes[1] then tbl.FireModes[1] = weapon.FireModes[1] end
+		if weapon.FireModes[2] and tbl.FireModes[2] then tbl.FireModes[2] = weapon.FireModes[2] end
+		if weapon.FireModes[3] and tbl.FireModes[3] then tbl.FireModes[3] = weapon.FireModes[3] end
 	end
 	
 	netmsg( 1 )
@@ -333,25 +335,27 @@ local function ApplyChanges( weapon )
 	if not istable( tbl ) then return end
 	
 	if istable( tbl.Primary ) and istable( weapon.Primary ) then
-		if tbl.Primary.Ammo then tbl.Primary.Ammo = weapon.Primary.Ammo end
-		if tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
-		if tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
-		if tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
-		if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
-		elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
+		if weapon.Primary.Ammo and tbl.Primary.Ammo then tbl.Primary.Ammo = weapon.Primary.Ammo end
+		if weapon.Primary.Damage and tbl.Primary.Damage then tbl.Primary.Damage = weapon.Primary.Damage end
+		if weapon.Primary.ClipSize and tbl.Primary.ClipSize then tbl.Primary.ClipSize = weapon.Primary.ClipSize end
+		if weapon.Primary.DefaultClip and tbl.Primary.DefaultClip then tbl.Primary.DefaultClip = weapon.Primary.DefaultClip end
+		if weapon.Primary.RPM then
+			if tbl.Primary.RPM then tbl.Primary.RPM = weapon.Primary.RPM
+			elseif ( tbl.Base == "cw_base" or tbl.Base == "fas2_base" ) and tbl.FireDelay then tbl.FireDelay = ( 60 / weapon.Primary.RPM ) end
+		end
 	end
 	if istable( tbl.Secondary ) and istable( weapon.Secondary ) then
-		if tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
-		if tbl.Secondary.Damage then tbl.Secondary.Damage = weapon.Secondary.Damage end
-		if tbl.Secondary.ClipSize then tbl.Secondary.ClipSize = weapon.Secondary.ClipSize end
-		if tbl.Secondary.DefaultClip then tbl.Secondary.DefaultClip = weapon.Secondary.DefaultClip end
+		if weapon.Secondary.Ammo and tbl.Secondary.Ammo then tbl.Secondary.Ammo = weapon.Secondary.Ammo end
+		if weapon.Secondary.Damage and tbl.Secondary.Damage then tbl.Secondary.Damage = weapon.Secondary.Damage end
+		if weapon.Secondary.ClipSize and tbl.Secondary.ClipSize then tbl.Secondary.ClipSize = weapon.Secondary.ClipSize end
+		if weapon.Secondary.DefaultClip and tbl.Secondary.DefaultClip then tbl.Secondary.DefaultClip = weapon.Secondary.DefaultClip end
 	end
-	if tbl.Slot then tbl.Slot = weapon.Slot end
-	if tbl.SlotPos then tbl.SlotPos = weapon.SlotPos end
+	if weapon.Slot and tbl.Slot then tbl.Slot = weapon.Slot end
+	if weapon.SlotPos and tbl.SlotPos then tbl.SlotPos = weapon.SlotPos end
 	if istable( tbl.FireModes ) and istable( weapon.FireModes ) then
-		if tbl.FireModes[1] then tbl.FireModes[1] = weapon.FireModes[1] end
-		if tbl.FireModes[2] then tbl.FireModes[2] = weapon.FireModes[2] end
-		if tbl.FireModes[3] then tbl.FireModes[3] = weapon.FireModes[3] end
+		if weapon.FireModes[1] and tbl.FireModes[1] then tbl.FireModes[1] = weapon.FireModes[1] end
+		if weapon.FireModes[2] and tbl.FireModes[2] then tbl.FireModes[2] = weapon.FireModes[2] end
+		if weapon.FireModes[3] and tbl.FireModes[3] then tbl.FireModes[3] = weapon.FireModes[3] end
 	end
 	
 end
